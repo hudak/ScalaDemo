@@ -2,6 +2,11 @@
 
 //// immutable.List
 assert(List(1, 2, 3) == 1 :: 2 :: 3 :: Nil)
+var list = Nil.::(3).::(2).::(1)
+
+val first :: rest = list
+assert(first == 1)
+rest
 
 val head = "foo"
 val tail = List("bar")
@@ -21,12 +26,28 @@ assert(head +: tail == cons)
 assert(cons(1) == "bar")
 
 // transformations
-def getLen(str: String) = {
+def getLen(str: String): Int = {
   str.length
 }
 cons.map(getLen)
 cons.filter(str => str.contains("o"))
 cons.flatMap(_.toCharArray)
+
+val x = 1
+var y = 2
+y = 3
+def z = {
+  println("evaluated z")
+  4
+}
+lazy val q = {
+  println("evaluated q")
+  5
+}
+
+println("something else")
+q
+
 
 //// immutable.Set
 var set = Set(1, 1, 2, 2, 3)
@@ -44,11 +65,16 @@ assert(!set(5))
 // conversion
 set.toList
 
+val mapEntry: (String, Int) = ("foo", 1)
 //// immutable.Map
-var map = Map("foo" -> 1, "bar" -> 2)
+var map = Map(mapEntry, "bar" -> 2)
 
 // maps are collections of pairs
 assert(map == Map.empty.updated("foo", 1).updated("bar", 2))
+
+
+val tupleList = List(1 -> true, 2 -> false)
+tupleList.toMap
 
 assert(map.size > map.tail.size)
 assert(map.size == 2)
@@ -67,7 +93,7 @@ map.getOrElse("none such", "default value")
 map.getOrElse("foo", throw new RuntimeException("was expecting foo"))
 
 //// Option
-val option = Some("a value")
+val option = Option("a value")
 None
 
 option.contains("a value")
@@ -150,3 +176,16 @@ collection.flatMap { entry =>
 }
 
 // requires: map, flatMap, withFilter, foreach
+
+import scala.concurrent.{Await, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+
+var future: Future[String] = for {
+  first <- Future("first")
+  second <- Future("second")
+  third <- Future("third")
+  fourth <- Future(first + second + third)
+} yield fourth
+
+Await.result(future, 5.seconds)
