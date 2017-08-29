@@ -31,13 +31,18 @@ def describePlanet(planet: Planet) = planet match {
 
 describePlanet(jupiter)
 
-// Recursive matching
+// combining patterns with recursion
 def describePlanets(list: List[Planet]): Unit = list match {
-  case head :: tail =>
-    println(describePlanet(head))
-    describePlanets(tail)
-  case Nil => println("done")
+  case Nil =>
+    println("done")
+  case Terrestrial(name) :: rest =>
+    println(s"terrestrial planet $name")
+    describePlanets(rest)
+  case GasGiant(name, _) :: rest =>
+    println(s"gas giant $name")
+    describePlanets(rest)
 }
+// bonus: tail recursion!
 
 describePlanets(planets)
 
