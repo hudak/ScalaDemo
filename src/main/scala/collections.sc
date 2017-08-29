@@ -1,9 +1,6 @@
-
-import scala.collection.{AbstractSeq, immutable}
-import scala.util.{Failure, Success, Try}
 // Collections
 
-//// immutable List
+//// immutable.List
 assert(List(1, 2, 3) == 1 :: 2 :: 3 :: Nil)
 
 val head = "foo"
@@ -23,7 +20,15 @@ assert(head +: tail == cons)
 // lists are functions: (Int) => T
 assert(cons(1) == "bar")
 
-//// immutable Set
+// transformations
+def getLen(str: String) = {
+  str.length
+}
+cons.map(getLen)
+cons.filter(str => str.contains("o"))
+cons.flatMap(_.toCharArray)
+
+//// immutable.Set
 var set = Set(1, 1, 2, 2, 3)
 assert(set contains 3)
 
@@ -36,11 +41,16 @@ assert(set contains 4)
 assert(set(1))
 assert(!set(5))
 
-//// Map
+// conversion
+set.toList
+
+//// immutable.Map
 var map = Map("foo" -> 1, "bar" -> 2)
 
 // maps are collections of pairs
-assert(map.head == ("foo", 1))
+assert(map == Map.empty.updated("foo", 1).updated("bar", 2))
+
+assert(map.size > map.tail.size)
 assert(map.size == 2)
 
 val entry = ("baz", 3)
@@ -53,7 +63,8 @@ assert(map("foo") == 1)
 
 map.get("baz")
 map.get("bingo")
-map.get("none such")
+map.getOrElse("none such", "default value")
+map.getOrElse("foo", throw new RuntimeException("was expecting foo"))
 
 //// Option
 val option = Some("a value")
@@ -68,7 +79,7 @@ Some(1).getOrElse {
 }
 
 //// Either
-val either: Either[Boolean, String] = Either.cond(1 > 2, "conditiion was true", false)
+val either: Either[Boolean, String] = Either.cond(1 > 2, "condition was true", false)
 
 val projection: Either[Int, Int] = either
   .left.map(bool => if (bool) 1 else 0)
@@ -80,13 +91,24 @@ either match {
 }
 
 //// Try
+import scala.util.{Failure, Success, Try}
 
 val tryCatch: Try[String] = Try {
   throw new RuntimeException("risky operation")
 }
 
 // either a Success or a Failure
-tryCatch.transform(success => Failure(new RuntimeException(success)), failure => Success(failure.getMessage))
+tryCatch match {
+  case Success(value) => s"Was a success: $value"
+  case Failure(throwable) => s"Was a failure: $throwable"
+}
+
+// immutable, but can be transformed
+tryCatch.map(string => string.length).recover { case _: Throwable => 0 }
+tryCatch.transform(
+  success => Failure(new RuntimeException(success)),
+  failure => Success(failure.getMessage)
+)
 
 // defaults
 tryCatch.getOrElse("default value")
@@ -120,15 +142,11 @@ for {
   value <- range if name.nonEmpty && value >= 6
 } yield s"$upper $value"
 
-for {
-  (name, range) <- collection
-  upper = name.toUpperCase
-  value <- range if name.nonEmpty && value >= 6
-} yield s"$upper $value"
-
 collection.flatMap { entry =>
   val name = entry._1
   val range = entry._2
   val upper = name.toUpperCase
   range.withFilter(value => name.nonEmpty && value >= 6).map(value => s"$upper $value")
 }
+
+// requires: map, flatMap, withFilter, foreach
